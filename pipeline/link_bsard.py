@@ -110,8 +110,8 @@ def extract_article_no_from_reference(reference: str) -> str | None:
 # ── Load bsard_full_verify.csv ─────────────────────────────────────────────────
 
 def load_verify_csv(csv_path: Path) -> pd.DataFrame:
-    """Read the CSV with Latin-1 encoding; standardise column names."""
-    df = pd.read_csv(csv_path, encoding="latin-1")
+    """Read the CSV (UTF-8 encoded); standardise column names."""
+    df = pd.read_csv(csv_path, encoding="utf-8")
     # Rename columns to match DB schema
     df = df.rename(columns={
         "id":                "bsard_id",
