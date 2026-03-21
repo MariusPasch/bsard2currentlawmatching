@@ -1,0 +1,22 @@
+# Virtual environment
+.venv/
+
+# Pipeline outputs (stored on OneDrive via junction)
+output/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.swp
