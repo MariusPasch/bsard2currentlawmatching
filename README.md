@@ -29,7 +29,8 @@ Dataset_Creation/                          ← Project root (this repo)
 │   ├── link_bsard.py                      ← Phase B: BSARD linkage + metadata merge
 │   ├── extract_citations.py               ← Phase C: cross-reference extraction
 │   ├── build_database.py                  ← Phase D: SQLite assembly
-│   └── export_corpus.py                   ← Phase D: Parquet + JSONL exports
+│   ├── export_corpus.py                   ← Phase D: Parquet + JSONL exports
+│   └── build_clean_dataset.py             ← Post: deduplicated, PDF-only companion dataset
 │
 ├── analysis/                              ← Analysis scripts (run independently)
 │   ├── corpus_stats.py                    ← Phase E: Chapter 3 statistics
@@ -42,6 +43,9 @@ Dataset_Creation/                          ← Project root (this repo)
 │   ├── bsard_articles.jsonl               ← Full corpus for vector store ingestion (90 MB)
 │   ├── bsard_articles_only.parquet        ← BSARD-only subset (12 MB)
 │   ├── bsard_articles_only.jsonl          ← BSARD-only subset for benchmarking (78 MB)
+│   ├── bsard_corpus_clean.db              ← Deduplicated, PDF-only companion DB (~68 MB, see CLEAN_DATASET.md)
+│   ├── bsard_articles_clean.parquet       ← Clean dataset in Parquet (~10 MB)
+│   ├── bsard_articles_clean.jsonl         ← Clean dataset in JSONL (~63 MB)
 │   ├── corpus_stats.json                  ← Chapter 3 statistics
 │   ├── pdfs/                              ← 49 downloaded Justel PDFs
 │   ├── extracted/                         ← Per-PDF intermediate JSONL (Phase A output)
@@ -53,6 +57,8 @@ Dataset_Creation/                          ← Project root (this repo)
 ├── CORPUS_DATABASE_PROJECT.md             ← Full technical specification
 ├── PROJECT_MAP.md                         ← Quick reference: all file locations + descriptions
 ├── RETRIEVAL_PROJECT.md                   ← Context document for the downstream retrieval project
+├── CLEAN_DATASET.md                       ← Deduplicated, PDF-only companion dataset docs
+├── EXTRACTION_COVERAGE_FEASIBILITY.md     ← Feasibility investigation behind the clean dataset
 └── README.md                              ← This file
 ```
 
@@ -188,6 +194,19 @@ Computes all corpus statistics required for Chapter 3 of the thesis. Saves resul
 | `target_id` | `article_id` of the cited article |
 | `citation_text` | Raw citation string |
 | `resolved` | 1 if target exists in the corpus |
+
+---
+
+## Clean Companion Dataset
+
+A deduplicated, PDF-only companion is produced by `pipeline/build_clean_dataset.py` and shipped as `output/bsard_corpus_clean.db` (plus Parquet and JSONL exports). It contains **28,817 unique articles** — the main corpus's 40,231 rows with Phase B HuggingFace-only stubs removed and duplicate `(pdf_filename, article_number)` rows collapsed.
+
+| | Main corpus | Clean companion |
+|---|---|---|
+| Rows | 40,231 | 28,817 |
+| Unique BSARD IDs | 22,633 (full benchmark) | 16,689 (73.7%) |
+
+Use the main corpus for benchmark Recall@k evaluation; use the clean companion for graph-RAG, distractor analysis, and any work needing non-inflated article counts. `article_id` is preserved across both, so joins on questions and the citation graph are trivial. Full details and trade-offs in [CLEAN_DATASET.md](CLEAN_DATASET.md).
 
 ---
 

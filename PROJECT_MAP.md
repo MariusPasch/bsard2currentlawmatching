@@ -18,6 +18,7 @@ Last updated: 2026-03-21
 | `extract_citations.py` | C | Parses French legal cross-references from article text using five regex patterns; resolves cited article IDs; writes citation graph; enriches articles with citation metadata |
 | `build_database.py` | D | Builds SQLite database from Phase C outputs; creates `articles`, `questions`, and `citation_graph` tables; FTS5 index; token counts via tiktoken |
 | `export_corpus.py` | D | Exports the database to Parquet and JSONL formats (full corpus + BSARD-only subset) |
+| `build_clean_dataset.py` | F (post) | Builds the deduplicated, PDF-only companion dataset from `bsard_corpus.db`; excludes Phase B HF-only stubs and collapses duplicate `(pdf_filename, article_number)` rows. See [CLEAN_DATASET.md](CLEAN_DATASET.md) |
 
 ### `analysis/` — Analysis scripts (run independently)
 
@@ -35,6 +36,8 @@ Last updated: 2026-03-21
 | `README.md` | Project overview, setup instructions, pipeline summary, schema reference |
 | `PROJECT_MAP.md` | This file |
 | `RETRIEVAL_PROJECT.md` | Context document for the downstream retrieval experiments project |
+| `CLEAN_DATASET.md` | Documentation for the deduplicated, PDF-only companion dataset (`bsard_corpus_clean.db`) |
+| `EXTRACTION_COVERAGE_FEASIBILITY.md` | Feasibility investigation behind the clean dataset; why the main pipeline is near the practical extraction ceiling |
 | `requirements.txt` | Pinned Python dependencies |
 | `.gitignore` | Excludes `.venv/`, `output/`, `__pycache__/` |
 
@@ -70,6 +73,9 @@ Last updated: 2026-03-21
 | `output/bsard_articles.jsonl` | ~90 MB | Full corpus in JSONL |
 | `output/bsard_articles_only.parquet` | ~12 MB | BSARD benchmark subset (33,741 articles) in Parquet |
 | `output/bsard_articles_only.jsonl` | ~78 MB | BSARD benchmark subset in JSONL |
+| `output/bsard_corpus_clean.db` | ~68 MB | Deduplicated, PDF-only companion SQLite (28,817 rows). See [CLEAN_DATASET.md](CLEAN_DATASET.md) |
+| `output/bsard_articles_clean.parquet` | ~10 MB | Clean dataset in Parquet |
+| `output/bsard_articles_clean.jsonl` | ~63 MB | Clean dataset in JSONL |
 | `output/corpus_stats.json` | ~5 KB | Phase E statistics: corpus overview, length distributions, Jaccard overlap, etc. |
 
 ---
