@@ -61,7 +61,6 @@ bsard2currentlawmatching/                  ← Project root (this repo)
 ├── .venv/                                 ← Local Python virtual environment (not committed)
 ├── requirements.txt                       ← All project dependencies
 ├── CORPUS_DATABASE_PROJECT.md             ← Full technical specification
-├── RETRIEVAL_PROJECT.md                   ← Context document for the downstream retrieval project
 ├── CLEAN_DATASET.md                       ← Deduplicated, PDF-only companion dataset docs
 ├── QUESTION_EXTRACTION_ANALYSIS.md        ← Question-by-extraction-status analysis docs
 └── README.md                              ← This file
@@ -295,4 +294,4 @@ Use the main corpus for benchmark Recall@k evaluation; use the clean companion f
 
 ## Downstream Usage
 
-The corpus database feeds the **BSARD Retrieval Experiments** project (`RETRIEVAL_PROJECT.md`). See that document for the full retrieval method roadmap (RQ1–RQ3), evaluation protocol, and how each database feature maps to a specific thesis stage.
+The corpus database feeds the **BSARD Retrieval Experiments** project, which evaluates sparse, dense, hybrid, and re-ranking retrieval methods plus advanced RAG ablations (chunking, metadata filtering, hierarchical context, HyDE, GraphRAG citation expansion) against the BSARD test set using Recall@k, MRR@10, and NDCG@10.
