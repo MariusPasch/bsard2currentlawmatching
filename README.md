@@ -61,7 +61,6 @@ bsard2currentlawmatching/                  ← Project root (this repo)
 ├── .venv/                                 ← Local Python virtual environment (not committed)
 ├── requirements.txt                       ← All project dependencies
 ├── CORPUS_DATABASE_PROJECT.md             ← Full technical specification
-├── PROJECT_MAP.md                         ← Quick reference: all file locations + descriptions
 ├── RETRIEVAL_PROJECT.md                   ← Context document for the downstream retrieval project
 ├── CLEAN_DATASET.md                       ← Deduplicated, PDF-only companion dataset docs
 ├── QUESTION_EXTRACTION_ANALYSIS.md        ← Question-by-extraction-status analysis docs
@@ -290,7 +289,7 @@ Use the main corpus for benchmark Recall@k evaluation; use the clean companion f
 | BSARD corpus (22,633 articles) | `load_dataset("maastrichtlawtech/bsard", "corpus", split="corpus")` |
 | BSARD questions (1,108) | `load_dataset("maastrichtlawtech/bsard", "questions", split="train/test")` |
 | 49 Justel consolidated PDFs | Downloaded to `output/pdfs/` (also distributed via the Hugging Face dataset) |
-| `bsard_full_verify.csv` | Parent project — UTF-8, read-only |
+| `bsard_full_verify.csv` | Published in the Hugging Face dataset (`output/bsard_full_verify.csv` after `python scripts/download_from_hf.py`) |
 
 ---
 
