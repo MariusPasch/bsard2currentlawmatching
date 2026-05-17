@@ -19,6 +19,7 @@ Requires `huggingface_hub` (already pinned in requirements.txt).
 from __future__ import annotations
 
 import argparse
+import fnmatch
 from pathlib import Path
 
 from huggingface_hub import HfApi, create_repo
@@ -27,7 +28,11 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_REPO_ID = "MariusPasch/bsard2currentlawmatching"
 DEFAULT_LOCAL_DIR = PROJECT_ROOT / "output"
 
-# Always ignored on upload — local SQLite WAL/SHM sidecars and OS junk.
+# Always ignored on upload:
+#   - local SQLite WAL/SHM sidecars and OS junk
+#   - cache/ and logs/ (local-only working directories)
+#   - artifacts that belong to the downstream retrieval project, not this corpus project:
+#     embeddings/, results/, llm_judge_cache_*.json
 DEFAULT_IGNORE = [
     "*.db-wal",
     "*.db-shm",
@@ -35,6 +40,9 @@ DEFAULT_IGNORE = [
     "Thumbs.db",
     "cache/**",
     "logs/**",
+    "embeddings/**",
+    "results/**",
+    "llm_judge_cache_*.json",
 ]
 
 
@@ -44,6 +52,19 @@ def human_bytes(n: int) -> str:
             return f"{n:.1f} {unit}"
         n /= 1024
     return f"{n:.1f} TB"
+
+
+def is_ignored(rel_posix: str, patterns: list[str]) -> bool:
+    """Mirror HfApi.upload_folder semantics for ignore_patterns matching."""
+    name = rel_posix.split("/")[-1]
+    for pat in patterns:
+        if fnmatch.fnmatch(rel_posix, pat) or fnmatch.fnmatch(name, pat):
+            return True
+        if pat.endswith("/**") and (
+            rel_posix.startswith(pat[:-3] + "/") or rel_posix == pat[:-3]
+        ):
+            return True
+    return False
 
 
 def main() -> None:
@@ -65,12 +86,18 @@ def main() -> None:
     if not args.local_dir.exists():
         raise SystemExit(f"Local dir not found: {args.local_dir}")
 
-    files = [p for p in args.local_dir.rglob("*") if p.is_file()]
-    total = sum(p.stat().st_size for p in files)
+    all_files = [p for p in args.local_dir.rglob("*") if p.is_file()]
+    kept, skipped = [], []
+    for p in all_files:
+        rel = p.relative_to(args.local_dir).as_posix()
+        (skipped if is_ignored(rel, DEFAULT_IGNORE) else kept).append(p)
+    total_keep = sum(p.stat().st_size for p in kept)
+    total_skip = sum(p.stat().st_size for p in skipped)
     print(f"Local source : {args.local_dir}")
     print(f"Target repo  : {args.repo} (dataset)")
-    print(f"Files        : {len(files)} ({human_bytes(total)})")
     print(f"Ignored      : {', '.join(DEFAULT_IGNORE)}")
+    print(f"Will upload  : {len(kept)} files ({human_bytes(total_keep)})")
+    print(f"Will skip    : {len(skipped)} files ({human_bytes(total_skip)})")
 
     if not args.confirm:
         print("\nDry run only. Re-run with --confirm to upload.")
