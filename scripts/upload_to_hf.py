@@ -23,8 +23,30 @@ import fnmatch
 import time
 from pathlib import Path
 
+import requests
+import requests.adapters
 from huggingface_hub import HfApi, create_repo
 from huggingface_hub.utils import HfHubHTTPError
+
+# Force a wall-clock timeout on every HTTP call huggingface_hub makes.
+# Without this, a stalled TCP socket (Windows-flaky on large LFS uploads)
+# blocks the python process forever — the upload progress bar freezes at a
+# fixed byte count with the process at 0% CPU, and our retry loop never fires
+# because no exception is raised.  With this patch a read-stall of >120s
+# raises requests.exceptions.ReadTimeout, which the retry loop catches.
+_CONNECT_TIMEOUT_S = 30
+_READ_TIMEOUT_S = 120
+_orig_adapter_send = requests.adapters.HTTPAdapter.send
+
+
+def _patched_send(self, request, *, stream=False, timeout=None, verify=True, cert=None, proxies=None):
+    if timeout is None:
+        timeout = (_CONNECT_TIMEOUT_S, _READ_TIMEOUT_S)
+    return _orig_adapter_send(self, request, stream=stream, timeout=timeout,
+                              verify=verify, cert=cert, proxies=proxies)
+
+
+requests.adapters.HTTPAdapter.send = _patched_send
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_REPO_ID = "mpaschalidis/bsard2currentlawmatching"
@@ -159,7 +181,8 @@ def main() -> None:
                     )
                 print(f"[{i:2d}/{len(chunks)}] OK     {rel}", flush=True)
                 break
-            except (HfHubHTTPError, OSError, ConnectionError, TimeoutError) as exc:
+            except (HfHubHTTPError, OSError, ConnectionError, TimeoutError,
+                    requests.exceptions.RequestException) as exc:
                 wait = min(2 ** attempt, 60)
                 print(f"[{i:2d}/{len(chunks)}] FAIL   {rel}: {type(exc).__name__}: {exc}", flush=True)
                 if attempt == max_retries:
