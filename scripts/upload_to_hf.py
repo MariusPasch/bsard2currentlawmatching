@@ -20,9 +20,11 @@ from __future__ import annotations
 
 import argparse
 import fnmatch
+import time
 from pathlib import Path
 
 from huggingface_hub import HfApi, create_repo
+from huggingface_hub.utils import HfHubHTTPError
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_REPO_ID = "mpaschalidis/bsard2currentlawmatching"
@@ -108,14 +110,73 @@ def main() -> None:
         create_repo(args.repo, repo_type="dataset", private=args.private, exist_ok=True)
         print(f"Ensured dataset repo exists: {args.repo}")
 
-    api.upload_folder(
-        repo_id=args.repo,
-        repo_type="dataset",
-        folder_path=str(args.local_dir),
-        commit_message=args.commit_message,
-        ignore_patterns=DEFAULT_IGNORE,
-    )
-    print("Upload complete.")
+    # Sequential per-entry upload. Each top-level entry in `output/` (single
+    # file or whole subdirectory) becomes its own bounded transaction with
+    # retries. A network stall in one entry cannot lock up the rest; rerunning
+    # the script skips files HfApi already has on the server.
+    chunks = sorted(args.local_dir.iterdir(),
+                    key=lambda p: (sum(f.stat().st_size for f in p.rglob('*') if f.is_file())
+                                   if p.is_dir() else p.stat().st_size))
+    max_retries = 5
+    failed: list[str] = []
+
+    for i, entry in enumerate(chunks, 1):
+        rel = entry.relative_to(args.local_dir).as_posix()
+        if entry.is_file():
+            if is_ignored(rel, DEFAULT_IGNORE):
+                print(f"[{i:2d}/{len(chunks)}] SKIP   {rel}")
+                continue
+            sz = human_bytes(entry.stat().st_size)
+            label = f"file   {rel} ({sz})"
+        else:
+            files = [p for p in entry.rglob('*') if p.is_file()
+                     and not is_ignored(p.relative_to(args.local_dir).as_posix(), DEFAULT_IGNORE)]
+            if not files:
+                print(f"[{i:2d}/{len(chunks)}] SKIP   {rel}/ (all ignored)")
+                continue
+            total = sum(p.stat().st_size for p in files)
+            label = f"folder {rel}/ ({len(files)} files, {human_bytes(total)})"
+
+        for attempt in range(1, max_retries + 1):
+            print(f"[{i:2d}/{len(chunks)}] UPLOAD {label}  [attempt {attempt}/{max_retries}]", flush=True)
+            try:
+                if entry.is_file():
+                    api.upload_file(
+                        path_or_fileobj=str(entry),
+                        path_in_repo=rel,
+                        repo_id=args.repo,
+                        repo_type="dataset",
+                        commit_message=f"Add {rel}",
+                    )
+                else:
+                    api.upload_folder(
+                        repo_id=args.repo,
+                        repo_type="dataset",
+                        folder_path=str(entry),
+                        path_in_repo=rel,
+                        commit_message=f"Add {rel}/",
+                        ignore_patterns=DEFAULT_IGNORE,
+                    )
+                print(f"[{i:2d}/{len(chunks)}] OK     {rel}", flush=True)
+                break
+            except (HfHubHTTPError, OSError, ConnectionError, TimeoutError) as exc:
+                wait = min(2 ** attempt, 60)
+                print(f"[{i:2d}/{len(chunks)}] FAIL   {rel}: {type(exc).__name__}: {exc}", flush=True)
+                if attempt == max_retries:
+                    failed.append(rel)
+                    print(f"[{i:2d}/{len(chunks)}] GIVEUP {rel} after {max_retries} attempts", flush=True)
+                else:
+                    print(f"[{i:2d}/{len(chunks)}] WAIT   {wait}s before retry", flush=True)
+                    time.sleep(wait)
+
+    print("\n" + "=" * 60)
+    if failed:
+        print(f"Upload finished with {len(failed)} failed entries:")
+        for rel in failed:
+            print(f"  - {rel}")
+        print("Re-run the script to retry the failed entries.")
+        raise SystemExit(1)
+    print("Upload complete. All entries succeeded.")
 
 
 if __name__ == "__main__":
