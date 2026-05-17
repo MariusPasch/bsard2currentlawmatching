@@ -25,7 +25,7 @@ from pathlib import Path
 from huggingface_hub import HfApi, create_repo
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_REPO_ID = "MariusPasch/bsard2currentlawmatching"
+DEFAULT_REPO_ID = "mpaschalidis/bsard2currentlawmatching"
 DEFAULT_LOCAL_DIR = PROJECT_ROOT / "output"
 
 # Always ignored on upload:

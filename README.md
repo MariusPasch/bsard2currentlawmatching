@@ -2,7 +2,7 @@
 
 **Author:** Marios Paschalidis | **Last updated:** 2026-05-17
 **Parent project:** BSARD RAG Thesis
-**Data:** [`MariusPasch/bsard2currentlawmatching`](https://huggingface.co/datasets/MariusPasch/bsard2currentlawmatching) on Hugging Face
+**Data:** [`mpaschalidis/bsard2currentlawmatching`](https://huggingface.co/datasets/mpaschalidis/bsard2currentlawmatching) on Hugging Face
 
 ---
 
@@ -117,7 +117,7 @@ This populates `output/` with the SQLite database, Parquet exports, JSONL export
 
 The full corpus (~458 MB: SQLite DB + Parquet + JSONL + 49 source PDFs + intermediate artifacts) is hosted on Hugging Face:
 
-- **Dataset repo:** [`MariusPasch/bsard2currentlawmatching`](https://huggingface.co/datasets/MariusPasch/bsard2currentlawmatching) *(will be live after first upload)*
+- **Dataset repo:** [`mpaschalidis/bsard2currentlawmatching`](https://huggingface.co/datasets/mpaschalidis/bsard2currentlawmatching) *(will be live after first upload)*
 
 Quick download:
 
@@ -125,7 +125,7 @@ Quick download:
 from huggingface_hub import snapshot_download
 
 snapshot_download(
-    repo_id="MariusPasch/bsard2currentlawmatching",
+    repo_id="mpaschalidis/bsard2currentlawmatching",
     repo_type="dataset",
     local_dir="output",
 )

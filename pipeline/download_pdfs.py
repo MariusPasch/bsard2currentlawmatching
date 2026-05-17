@@ -5,7 +5,7 @@ PDFs are saved to output/pdfs/. Already-downloaded files are skipped unless
 
 The input CSV (bsard_full_verify.csv) is ~1 MB and is published alongside the
 rest of the dataset on Hugging Face:
-    https://huggingface.co/datasets/MariusPasch/bsard2currentlawmatching
+    https://huggingface.co/datasets/mpaschalidis/bsard2currentlawmatching
 Either pull it via `python scripts/download_from_hf.py` (which puts it at
 output/bsard_full_verify.csv) or pass --csv to point at an existing copy.
 

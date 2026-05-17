@@ -69,7 +69,7 @@ The surviving row retains its original `article_id` from the main corpus. The ID
 
 ### 3.1 Files
 
-All files are distributed via the Hugging Face dataset (`MariusPasch/bsard2currentlawmatching`); pulled locally into `output/`.
+All files are distributed via the Hugging Face dataset (`mpaschalidis/bsard2currentlawmatching`); pulled locally into `output/`.
 
 | Path | Size | Description |
 |---|---|---|
