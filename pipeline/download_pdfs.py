@@ -1,12 +1,18 @@
 """Download all 49 Justel consolidated PDFs listed in bsard_full_verify.csv.
 
-PDFs are saved to output/pdfs/ (which is a junction to OneDrive).
-Already-downloaded files are skipped unless --force is passed.
+PDFs are saved to output/pdfs/. Already-downloaded files are skipped unless
+--force is passed.
+
+The input CSV (bsard_full_verify.csv) is ~1 MB and is published alongside the
+rest of the dataset on Hugging Face:
+    https://huggingface.co/datasets/MariusPasch/bsard2currentlawmatching
+Either pull it via `python scripts/download_from_hf.py` (which puts it at
+output/bsard_full_verify.csv) or pass --csv to point at an existing copy.
 
 Usage:
-    python retrieval/download_pdfs.py
-    python retrieval/download_pdfs.py --csv PATH/TO/bsard_full_verify.csv
-    python retrieval/download_pdfs.py --force
+    python pipeline/download_pdfs.py
+    python pipeline/download_pdfs.py --csv PATH/TO/bsard_full_verify.csv
+    python pipeline/download_pdfs.py --force
 """
 
 from __future__ import annotations
@@ -21,14 +27,7 @@ import requests
 # ── Paths ──────────────────────────────────────────────────────────────────────
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_CSV = (
-    Path.home()
-    / "OneDrive"
-    / "Python Project Storage"
-    / "BSARD"
-    / "output"
-    / "bsard_full_verify.csv"
-)
+DEFAULT_CSV = PROJECT_ROOT / "output" / "bsard_full_verify.csv"
 DEFAULT_OUT_DIR = PROJECT_ROOT / "output" / "pdfs"
 
 

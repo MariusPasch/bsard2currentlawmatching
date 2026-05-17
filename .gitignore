@@ -1,7 +1,7 @@
 # Virtual environment
 .venv/
 
-# Pipeline outputs (stored on OneDrive via junction)
+# Pipeline outputs (distributed via the Hugging Face dataset, see README)
 output/
 
 # Python cache

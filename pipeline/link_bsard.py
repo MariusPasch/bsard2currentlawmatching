@@ -34,14 +34,10 @@ from datasets import load_dataset
 # ── Paths ──────────────────────────────────────────────────────────────────────
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_CSV = (
-    Path.home()
-    / "OneDrive"
-    / "Python Project Storage"
-    / "BSARD"
-    / "output"
-    / "bsard_full_verify.csv"
-)
+# bsard_full_verify.csv is published in the Hugging Face dataset
+# (MariusPasch/bsard2currentlawmatching) and lands at this path when pulled
+# via `python scripts/download_from_hf.py`. Override with --csv if needed.
+DEFAULT_CSV = PROJECT_ROOT / "output" / "bsard_full_verify.csv"
 DEFAULT_EXTRACTED_DIR = PROJECT_ROOT / "output" / "extracted"
 DEFAULT_OUT_DIR = PROJECT_ROOT / "output" / "linked"
 

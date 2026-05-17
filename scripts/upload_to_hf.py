@@ -1,0 +1,95 @@
+"""Upload the local ./output/ artifacts to the bsard2currentlawmatching HF dataset.
+
+Mirrors the local `output/` directory to a Hugging Face dataset repo so the
+SQLite databases, Parquet exports, JSONL exports, and source PDFs can be
+downloaded by anyone via `scripts/download_from_hf.py`.
+
+Authentication: run `huggingface-cli login` once, or set the HF_TOKEN env var
+to a token that has write access to the target repo.
+
+Usage:
+    python scripts/upload_to_hf.py                       # dry-run plan first
+    python scripts/upload_to_hf.py --confirm             # actually upload
+    python scripts/upload_to_hf.py --confirm --create    # also create the repo
+    python scripts/upload_to_hf.py --repo OTHER/REPO --confirm
+
+Requires `huggingface_hub` (already pinned in requirements.txt).
+"""
+
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+from huggingface_hub import HfApi, create_repo
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_REPO_ID = "MariusPasch/bsard2currentlawmatching"
+DEFAULT_LOCAL_DIR = PROJECT_ROOT / "output"
+
+# Always ignored on upload — local SQLite WAL/SHM sidecars and OS junk.
+DEFAULT_IGNORE = [
+    "*.db-wal",
+    "*.db-shm",
+    ".DS_Store",
+    "Thumbs.db",
+    "cache/**",
+    "logs/**",
+]
+
+
+def human_bytes(n: int) -> str:
+    for unit in ("B", "KB", "MB", "GB"):
+        if n < 1024:
+            return f"{n:.1f} {unit}"
+        n /= 1024
+    return f"{n:.1f} TB"
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--repo", default=DEFAULT_REPO_ID,
+                        help=f"HF dataset repo id (default: {DEFAULT_REPO_ID})")
+    parser.add_argument("--local-dir", type=Path, default=DEFAULT_LOCAL_DIR,
+                        help=f"Local source directory (default: {DEFAULT_LOCAL_DIR})")
+    parser.add_argument("--commit-message", default="Sync local output/ to HF dataset",
+                        help="Commit message to record on the dataset repo")
+    parser.add_argument("--create", action="store_true",
+                        help="Create the dataset repo if it does not exist")
+    parser.add_argument("--private", action="store_true",
+                        help="Make the repo private when creating (default: public)")
+    parser.add_argument("--confirm", action="store_true",
+                        help="Actually upload. Without this flag, only prints a plan.")
+    args = parser.parse_args()
+
+    if not args.local_dir.exists():
+        raise SystemExit(f"Local dir not found: {args.local_dir}")
+
+    files = [p for p in args.local_dir.rglob("*") if p.is_file()]
+    total = sum(p.stat().st_size for p in files)
+    print(f"Local source : {args.local_dir}")
+    print(f"Target repo  : {args.repo} (dataset)")
+    print(f"Files        : {len(files)} ({human_bytes(total)})")
+    print(f"Ignored      : {', '.join(DEFAULT_IGNORE)}")
+
+    if not args.confirm:
+        print("\nDry run only. Re-run with --confirm to upload.")
+        return
+
+    api = HfApi()
+    if args.create:
+        create_repo(args.repo, repo_type="dataset", private=args.private, exist_ok=True)
+        print(f"Ensured dataset repo exists: {args.repo}")
+
+    api.upload_folder(
+        repo_id=args.repo,
+        repo_type="dataset",
+        folder_path=str(args.local_dir),
+        commit_message=args.commit_message,
+        ignore_patterns=DEFAULT_IGNORE,
+    )
+    print("Upload complete.")
+
+
+if __name__ == "__main__":
+    main()

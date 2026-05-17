@@ -2,7 +2,7 @@
 
 **Author:** Marios Paschalidis | **Last updated:** 2026-03-21
 **Thesis:** RAG Retrieval over Belgian Statutory Law (BSARD)
-**Predecessor project:** `Dataset_Creation/` — corpus and database construction (complete)
+**Predecessor project:** `bsard2currentlawmatching/` — corpus and database construction (complete)
 
 This document is the primary context file for the **Retrieval** project. It describes everything a new project needs to know: what the corpus contains, how it is stored, how to access it, what must be built, and how success is measured.
 
@@ -26,10 +26,12 @@ The pipeline progresses through five implementation stages, each building on the
 
 ## 2. Corpus — What Is Available
 
-All corpus data is in **`output/bsard_corpus.db`** (SQLite, ~100 MB) and its flat exports. The `output/` directory is a Windows junction pointing to:
+All corpus data is in **`output/bsard_corpus.db`** (SQLite, ~100 MB) and its flat exports. Populate the `output/` directory from the published Hugging Face dataset:
 
-```
-OneDrive\Python Project Storage\BSARD_THESIS_DATASET\
+```bash
+python scripts/download_from_hf.py
+# or, equivalently:
+# huggingface-cli download MariusPasch/bsard2currentlawmatching --repo-type dataset --local-dir output
 ```
 
 ### 2.1 Primary files
@@ -415,7 +417,6 @@ Retrieval/                          ← New project root
 ├── analysis/
 │   └── results_comparison.ipynb   ← Cross-experiment comparison notebook
 │
-├── CLAUDE.md                       ← Project rules
 └── README.md                       ← Retrieval project overview
 ```
 
@@ -480,7 +481,7 @@ def get_neighbours(article_id: int, conn) -> dict:
 ## 8. Environment and Storage Rules
 
 - **Virtual environment:** always execute scripts inside the project-local `.venv/`
-- **Large files:** vector store indices, embedding files, and result dumps go to OneDrive, not the Git repo
+- **Large files:** vector store indices, embedding files, and result dumps stay out of the Git repo (use external storage or the Hugging Face dataset)
 - **Database:** treat `output/bsard_corpus.db` as **read-only** from this project — never write to it
 - **Parquet/JSONL files:** also read-only — source data from the corpus project
 - **Result files:** save per-experiment results as JSON in `evaluation/results/` and commit to Git (they are small)

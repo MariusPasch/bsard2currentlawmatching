@@ -69,7 +69,7 @@ The surviving row retains its original `article_id` from the main corpus. The ID
 
 ### 3.1 Files
 
-All files are on OneDrive via the `output/` junction.
+All files are distributed via the Hugging Face dataset (`MariusPasch/bsard2currentlawmatching`); pulled locally into `output/`.
 
 | Path | Size | Description |
 |---|---|---|
@@ -267,9 +267,9 @@ The script takes ~20 seconds on the reference 40k-row corpus and writes ~140 MB 
 
 ## 8. Background
 
-This dataset was produced after a feasibility investigation of extraction coverage ([EXTRACTION_COVERAGE_FEASIBILITY.md](EXTRACTION_COVERAGE_FEASIBILITY.md)) which identified:
+This dataset was produced after an internal feasibility investigation of extraction coverage which identified:
 
 - The main corpus contains 14,308 duplicate rows keyed on `(pdf_filename, article_number)` — roughly 35% of the 40,231 total. Most are TOC-phantom pairs of BSARD articles.
 - The pipeline is already at or above the practical extraction ceiling for these 49 PDFs; there is no meaningful set of articles the pipeline has missed that a different approach would recover.
 
-The feasibility report's recommendation (4.1) — "phantom-duplicate cleanup" — is implemented here.
+The recommended "phantom-duplicate cleanup" from that investigation is what this companion dataset implements.

@@ -3,7 +3,7 @@
 Categorisation of all 1,108 BSARD benchmark questions by the PDF-extraction status of their ground-truth (mapped) BSARD articles. Intended for downstream retrieval experiments that need to know, per question, whether the relevant evidence is actually present in the PDF corpus, was modified, or is missing entirely.
 
 - **Notebook:** [analysis/question_extraction_analysis.ipynb](analysis/question_extraction_analysis.ipynb)
-- **Output (OneDrive junction, not committed):** `output/question_analysis/questions_by_extraction_status.jsonl` and `output/question_analysis/summary.json`
+- **Output (Hugging Face dataset, not committed):** `output/question_analysis/questions_by_extraction_status.jsonl` and `output/question_analysis/summary.json`
 - **Source DB:** `output/bsard_corpus.db` (read-only)
 
 ---

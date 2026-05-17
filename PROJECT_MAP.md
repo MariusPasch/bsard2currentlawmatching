@@ -1,8 +1,9 @@
-# Project Map — BSARD Corpus Dataset
+# Project Map — bsard2currentlawmatching
 
 Quick reference for all code and data locations.
-Data lives on OneDrive via the `output/` directory junction.
-Last updated: 2026-03-21
+Data lives on the Hugging Face dataset repo `MariusPasch/bsard2currentlawmatching`;
+download into `output/` via `python scripts/download_from_hf.py`.
+Last updated: 2026-05-17
 
 ---
 
@@ -27,26 +28,32 @@ Last updated: 2026-03-21
 | `corpus_stats.py` | Phase E: computes 10 categories of corpus statistics (length distributions, Jaccard overlap, hierarchy coverage, citation density, etc.); writes `output/corpus_stats.json` |
 | `exploratory_analysis.ipynb` | Interactive Jupyter notebook: corpus-wide statistics and visualisations (Part 1), article deep-dive by BSARD ID / article number / law code (Part 2), FTS5 search and filter utilities (Part 3) |
 
+### `scripts/` — Hugging Face helpers
+
+| File | What it does |
+|---|---|
+| `upload_to_hf.py` | Pushes the local `output/` artifacts (DB, Parquet, JSONL, PDFs) to the Hugging Face dataset repo |
+| `download_from_hf.py` | Mirrors the Hugging Face dataset repo into the local `output/` directory |
+
 ### Root
 
 | File | What it is |
 |---|---|
-| `CLAUDE.md` | Project rules for Claude Code (venv, storage, git conventions) |
 | `CORPUS_DATABASE_PROJECT.md` | Full technical specification: schema, pipeline design, regex patterns |
 | `README.md` | Project overview, setup instructions, pipeline summary, schema reference |
 | `PROJECT_MAP.md` | This file |
 | `RETRIEVAL_PROJECT.md` | Context document for the downstream retrieval experiments project |
 | `CLEAN_DATASET.md` | Documentation for the deduplicated, PDF-only companion dataset (`bsard_corpus_clean.db`) |
-| `EXTRACTION_COVERAGE_FEASIBILITY.md` | Feasibility investigation behind the clean dataset; why the main pipeline is near the practical extraction ceiling |
+| `QUESTION_EXTRACTION_ANALYSIS.md` | Per-question PDF-extraction status analysis docs |
 | `requirements.txt` | Pinned Python dependencies |
 | `.gitignore` | Excludes `.venv/`, `output/`, `__pycache__/` |
 
 ---
 
-## Data (OneDrive → `output/` junction)
+## Data (Hugging Face → local `output/`)
 
-**OneDrive path:** `OneDrive\Python Project Storage\BSARD_THESIS_DATASET\`
-**Local alias:** `output/` (Windows directory junction)
+**Hugging Face dataset:** [`MariusPasch/bsard2currentlawmatching`](https://huggingface.co/datasets/MariusPasch/bsard2currentlawmatching)
+**Local path:** `output/` (populated by `python scripts/download_from_hf.py`)
 
 ### Raw inputs
 

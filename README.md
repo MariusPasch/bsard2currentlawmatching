@@ -1,7 +1,8 @@
-# BSARD Corpus Database
+# bsard2currentlawmatching
 
-**Author:** Marios Paschalidis | **Last updated:** 2026-03-21
+**Author:** Marios Paschalidis | **Last updated:** 2026-05-17
 **Parent project:** BSARD RAG Thesis
+**Data:** [`MariusPasch/bsard2currentlawmatching`](https://huggingface.co/datasets/MariusPasch/bsard2currentlawmatching) on Hugging Face
 
 ---
 
@@ -21,7 +22,7 @@ All PDF article extraction and structural hierarchy detection uses **PyMuPDF (`f
 ## Project Structure
 
 ```
-Dataset_Creation/                          ← Project root (this repo)
+bsard2currentlawmatching/                  ← Project root (this repo)
 │
 ├── pipeline/                              ← ETL data pipeline (run once, in order)
 │   ├── download_pdfs.py                   ← Phase A: download 49 Justel PDFs
@@ -34,10 +35,16 @@ Dataset_Creation/                          ← Project root (this repo)
 │
 ├── analysis/                              ← Analysis scripts (run independently)
 │   ├── corpus_stats.py                    ← Phase E: Chapter 3 statistics
-│   └── exploratory_analysis.ipynb         ← Interactive corpus exploration notebook
+│   ├── exploratory_analysis.ipynb         ← Interactive corpus exploration notebook
+│   ├── clean_dataset_analysis.ipynb       ← Companion clean-dataset deep dive
+│   ├── question_extraction_analysis.ipynb ← Per-question PDF-extraction status
+│   └── vectordb_documents_review.ipynb    ← VectorDB document review
 │
-├── output/                                ← Junction → OneDrive storage
-│   │                                         (OneDrive\Python Project Storage\BSARD_THESIS_DATASET)
+├── scripts/                               ← Helper scripts (Hugging Face up/download)
+│   ├── upload_to_hf.py                    ← Push the `output/` artifacts to a HF dataset repo
+│   └── download_from_hf.py                ← Pull the dataset locally into `output/`
+│
+├── output/                                ← Generated artifacts (NOT committed; see "Data" below)
 │   ├── bsard_corpus.db                    ← Primary SQLite database (~100 MB)
 │   ├── bsard_articles.parquet             ← Full corpus flat export (14 MB)
 │   ├── bsard_articles.jsonl               ← Full corpus for vector store ingestion (90 MB)
@@ -53,16 +60,15 @@ Dataset_Creation/                          ← Project root (this repo)
 │
 ├── .venv/                                 ← Local Python virtual environment (not committed)
 ├── requirements.txt                       ← All project dependencies
-├── CLAUDE.md                              ← Project rules for Claude Code
 ├── CORPUS_DATABASE_PROJECT.md             ← Full technical specification
 ├── PROJECT_MAP.md                         ← Quick reference: all file locations + descriptions
 ├── RETRIEVAL_PROJECT.md                   ← Context document for the downstream retrieval project
 ├── CLEAN_DATASET.md                       ← Deduplicated, PDF-only companion dataset docs
-├── EXTRACTION_COVERAGE_FEASIBILITY.md     ← Feasibility investigation behind the clean dataset
+├── QUESTION_EXTRACTION_ANALYSIS.md        ← Question-by-extraction-status analysis docs
 └── README.md                              ← This file
 ```
 
-> **Storage rule:** All large files and database outputs (`output/`) are stored on OneDrive at `OneDrive\Python Project Storage\BSARD_THESIS_DATASET` via a directory junction. All code and configuration files are committed to this GitHub repository.
+> **Storage rule:** All large files and database outputs (`output/`) are distributed via Hugging Face (see [Data](#data)). The repo only contains code and documentation.
 
 ---
 
@@ -71,8 +77,8 @@ Dataset_Creation/                          ← Project root (this repo)
 ### 1. Clone the repository
 
 ```bash
-git clone <repo-url>
-cd Dataset_Creation
+git clone https://github.com/MariusPasch/bsard2currentlawmatching.git
+cd bsard2currentlawmatching
 ```
 
 ### 2. Create and activate the virtual environment
@@ -93,12 +99,44 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Configure the OneDrive output path
+### 4. Get the data
 
-The `output/` directory must point to your OneDrive storage location. On Windows, create a directory junction:
+You have two options:
 
-```cmd
-mklink /J output "C:\Users\<your-username>\OneDrive\Python Project Storage\BSARD_THESIS_DATASET"
+**(a) Download the pre-built dataset from Hugging Face** (recommended — no PDF download or pipeline run needed):
+
+```bash
+python scripts/download_from_hf.py
+```
+
+This populates `output/` with the SQLite database, Parquet exports, JSONL exports, and the 49 source PDFs. See [Data](#data) below for details.
+
+**(b) Re-build from scratch** by running the pipeline (see [Pipeline](#pipeline) below). The `output/` directory is created automatically by the first pipeline phase.
+
+---
+
+## Data
+
+The full corpus (~458 MB: SQLite DB + Parquet + JSONL + 49 source PDFs + intermediate artifacts) is hosted on Hugging Face:
+
+- **Dataset repo:** [`MariusPasch/bsard2currentlawmatching`](https://huggingface.co/datasets/MariusPasch/bsard2currentlawmatching) *(will be live after first upload)*
+
+Quick download:
+
+```python
+from huggingface_hub import snapshot_download
+
+snapshot_download(
+    repo_id="MariusPasch/bsard2currentlawmatching",
+    repo_type="dataset",
+    local_dir="output",
+)
+```
+
+Or, equivalently, run the included helper:
+
+```bash
+python scripts/download_from_hf.py
 ```
 
 ---
@@ -251,7 +289,7 @@ Use the main corpus for benchmark Recall@k evaluation; use the clean companion f
 |--------|--------|
 | BSARD corpus (22,633 articles) | `load_dataset("maastrichtlawtech/bsard", "corpus", split="corpus")` |
 | BSARD questions (1,108) | `load_dataset("maastrichtlawtech/bsard", "questions", split="train/test")` |
-| 49 Justel consolidated PDFs | Downloaded to `output/pdfs/` (OneDrive) |
+| 49 Justel consolidated PDFs | Downloaded to `output/pdfs/` (also distributed via the Hugging Face dataset) |
 | `bsard_full_verify.csv` | Parent project — UTF-8, read-only |
 
 ---
