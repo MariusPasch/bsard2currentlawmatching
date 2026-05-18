@@ -45,18 +45,25 @@ bsard2currentlawmatching/                  ← Project root (this repo)
 │   └── download_from_hf.py                ← Pull the dataset locally into `output/`
 │
 ├── output/                                ← Generated artifacts (NOT committed; see "Data" below)
-│   ├── bsard_corpus.db                    ← Primary SQLite database (~100 MB)
-│   ├── bsard_articles.parquet             ← Full corpus flat export (14 MB)
-│   ├── bsard_articles.jsonl               ← Full corpus for vector store ingestion (90 MB)
-│   ├── bsard_articles_only.parquet        ← BSARD-only subset (12 MB)
-│   ├── bsard_articles_only.jsonl          ← BSARD-only subset for benchmarking (78 MB)
-│   ├── bsard_corpus_clean.db              ← Deduplicated, PDF-only companion DB (~68 MB, see CLEAN_DATASET.md)
-│   ├── bsard_articles_clean.parquet       ← Clean dataset in Parquet (~10 MB)
-│   ├── bsard_articles_clean.jsonl         ← Clean dataset in JSONL (~63 MB)
-│   ├── corpus_stats.json                  ← Chapter 3 statistics
-│   ├── pdfs/                              ← 49 downloaded Justel PDFs
-│   ├── extracted/                         ← Per-PDF intermediate JSONL (Phase A output)
-│   └── linked/                            ← Intermediate enriched JSONL (Phases B–C output)
+│   │                                         (★ = published on Hugging Face, ☆ = regenerate locally)
+│   ├── ★ bsard_corpus.db                  ← Primary SQLite database (~103 MB)
+│   ├── ★ bsard_corpus_clean.db            ← Deduplicated, PDF-only companion DB (~71 MB, see CLEAN_DATASET.md)
+│   ├── ★ bsard_articles_clean.parquet     ← Clean dataset in Parquet (~10 MB)
+│   ├── ★ bsard_articles_dedup.parquet     ← Earlier dedup variant (~10 MB, superseded by clean)
+│   ├── ★ bsard_hf_articles.parquet        ← HuggingFace BSARD corpus snapshot (~9 MB)
+│   ├── ★ bsard_full_verify.csv            ← Source URL + verification metadata (~9 MB; pipeline input)
+│   ├── ★ corpus_stats.json                ← Chapter 3 statistics
+│   ├── ★ hf_to_local_id_mapping.json      ← BSARD-id ↔ local article_id maps
+│   ├── ★ local_to_hf_id_mapping.json
+│   ├── ★ question_analysis/               ← Per-question PDF-extraction status (2 files)
+│   ├── ☆ bsard_articles.parquet           ← Full corpus flat export (regen: pipeline/export_corpus.py)
+│   ├── ☆ bsard_articles.jsonl             ← Full corpus for vector stores (regen: pipeline/export_corpus.py)
+│   ├── ☆ bsard_articles_only.parquet      ← BSARD subset (regen: pipeline/export_corpus.py)
+│   ├── ☆ bsard_articles_only.jsonl        ← BSARD subset (regen: pipeline/export_corpus.py)
+│   ├── ☆ bsard_articles_clean.jsonl       ← Clean dataset JSONL (regen: pipeline/build_clean_dataset.py)
+│   ├── ☆ pdfs/                            ← 49 Justel PDFs (regen: pipeline/download_pdfs.py)
+│   ├── ☆ extracted/                       ← Per-PDF Phase A intermediates (regen: pipeline/extract_articles_from_pdf.py)
+│   └── ☆ linked/                          ← Phase B/C intermediates (regen: pipeline/link_bsard.py + extract_citations.py)
 │
 ├── .venv/                                 ← Local Python virtual environment (not committed)
 ├── requirements.txt                       ← All project dependencies
@@ -101,23 +108,31 @@ pip install -r requirements.txt
 
 You have two options:
 
-**(a) Download the pre-built dataset from Hugging Face** (recommended — no PDF download or pipeline run needed):
+**(a) Download the canonical dataset from Hugging Face** (recommended for retrieval / analysis work):
 
 ```bash
 python scripts/download_from_hf.py
 ```
 
-This populates `output/` with the SQLite database, Parquet exports, JSONL exports, and the 49 source PDFs. See [Data](#data) below for details.
+This populates `output/` with the two SQLite databases, three small Parquet snapshots, the verification CSV, the corpus statistics, and the question-extraction analysis (~268 MB total). The bulky exports (full Parquet/JSONL files for vector stores, the 49 source PDFs, and Phase A/B/C intermediates) are **not** on Hugging Face — they regenerate cleanly from the published DBs and CSV. To produce them locally:
 
-**(b) Re-build from scratch** by running the pipeline (see [Pipeline](#pipeline) below). The `output/` directory is created automatically by the first pipeline phase.
+```bash
+python pipeline/download_pdfs.py             # 49 source PDFs (61 MB)
+python pipeline/export_corpus.py             # bsard_articles*.{parquet,jsonl} from bsard_corpus.db
+python pipeline/build_clean_dataset.py       # bsard_articles_clean.jsonl from bsard_corpus_clean.db
+```
+
+**(b) Re-build from scratch** by running the full pipeline (see [Pipeline](#pipeline) below). The `output/` directory is created automatically by the first pipeline phase.
 
 ---
 
 ## Data
 
-The full corpus (~458 MB: SQLite DB + Parquet + JSONL + 49 source PDFs + intermediate artifacts) is hosted on Hugging Face:
+The canonical dataset (~268 MB) is hosted on Hugging Face:
 
-- **Dataset repo:** [`mpaschalidis/bsard2currentlawmatching`](https://huggingface.co/datasets/mpaschalidis/bsard2currentlawmatching) *(will be live after first upload)*
+- **Dataset repo:** [`mpaschalidis/bsard2currentlawmatching`](https://huggingface.co/datasets/mpaschalidis/bsard2currentlawmatching)
+
+It contains the two authoritative SQLite databases (everything else in the project derives from them), a handful of small support files, and the pipeline's source CSV. Bulky derived artifacts (full Parquet/JSONL exports, 49 source PDFs, Phase A/B/C intermediate JSONLs) are not republished — they regenerate locally from the published DBs and CSV via the pipeline scripts.
 
 Quick download:
 

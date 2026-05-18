@@ -69,13 +69,13 @@ The surviving row retains its original `article_id` from the main corpus. The ID
 
 ### 3.1 Files
 
-All files are distributed via the Hugging Face dataset (`mpaschalidis/bsard2currentlawmatching`); pulled locally into `output/`.
+The SQLite DB and Parquet snapshot are published on Hugging Face (`mpaschalidis/bsard2currentlawmatching`) and land in `output/` via `python scripts/download_from_hf.py`. The JSONL export is not republished — regenerate it locally from the DB by running `python pipeline/build_clean_dataset.py`.
 
-| Path | Size | Description |
-|---|---|---|
-| `output/bsard_corpus_clean.db` | ~68 MB | SQLite database, identical schema to [output/bsard_corpus.db](output/bsard_corpus.db) |
-| `output/bsard_articles_clean.parquet` | ~10 MB | Flat Parquet export |
-| `output/bsard_articles_clean.jsonl` | ~63 MB | JSONL export, one record per line, UTF-8 |
+| Path | Size | Source | Description |
+|---|---|---|---|
+| `output/bsard_corpus_clean.db` | ~71 MB | Hugging Face | SQLite database, identical schema to [output/bsard_corpus.db](output/bsard_corpus.db) |
+| `output/bsard_articles_clean.parquet` | ~10 MB | Hugging Face | Flat Parquet export |
+| `output/bsard_articles_clean.jsonl` | ~63 MB | regenerate locally | JSONL export, one record per line, UTF-8 |
 
 ### 3.2 Tables
 

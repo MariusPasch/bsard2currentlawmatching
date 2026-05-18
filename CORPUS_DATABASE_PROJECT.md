@@ -36,7 +36,7 @@ This new project is built on top of the BSARD pipeline project. Do not re-implem
 | `bsard_full_verify.csv` | 22,633 rows × 14 columns: `id, code, article_no, law_type, url_type, url, pdf_url, http_status, anchor_names, anchor_found, text_found, pdf_text_found, pdf_match_category, status` | [bsard_full_verify.csv](bsard_full_verify.csv) |
 | `output/pdf_article_counts.json` | 49 PDF URLs → count of distinct article numbers found in each PDF | [output/pdf_article_counts.json](output/pdf_article_counts.json) |
 | `output/pdf_page_coverage.json` | 49 PDF URLs → per-article page index `{bsard_id: [page_numbers]}`, total pages, pages needed/skippable | [output/pdf_page_coverage.json](output/pdf_page_coverage.json) |
-| `output/pdfs/` | 49 downloaded Justel consolidated PDFs (59 MB total; also published in the Hugging Face dataset) | [output/pdfs/](output/pdfs/) |
+| `output/pdfs/` | 49 downloaded Justel consolidated PDFs (59 MB total; not republished on HF — regenerate via `pipeline/download_pdfs.py`) | [output/pdfs/](output/pdfs/) |
 
 ### 2.3 Existing Documentation
 
